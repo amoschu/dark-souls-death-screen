@@ -1,0 +1,9 @@
+## Interface: 50400
+## Title: Dark Souls Death Screen
+## Author: Latreese
+## Notes: Praise the Sun! \o/
+
+## DefaultState: Enabled
+## LoadOnDemand: 0
+
+DarkSoulsDeathScreen.lua
