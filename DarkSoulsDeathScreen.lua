@@ -16,7 +16,7 @@ local FADE_OUT_DELAY = 0.4 -- in seconds
 local TEXT_END_DELAY = 0.5 -- in seconds
 local BACKGROUND_GRADIENT_PERCENT = 0.15 -- of background height
 local BACKGROUND_HEIGHT_PERCENT = 0.21 -- of screen height
-local TEXT_HEIGHT_PERCENT = 0.18 -- of screen height
+local TEXT_HEIGHT_PERCENT = 0.18 -- of screen height 
 
 local ScreenWidth, ScreenHeight = UIParent:GetSize()
 
