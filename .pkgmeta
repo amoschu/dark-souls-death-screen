@@ -1,1 +1,5 @@
 package-as: DarkSoulsDeathScreen
+
+ignore:
+    - LICENSE
+    - README.md
