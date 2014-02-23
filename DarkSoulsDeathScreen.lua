@@ -1,9 +1,14 @@
 
+local print, strsplit, select, wipe, remove
+    = print, strsplit, select, wipe, table.remove
 local CreateFrame, GetSpellInfo, PlaySoundFile, UIParent, UnitBuff
 	= CreateFrame, GetSpellInfo, PlaySoundFile, UIParent, UnitBuff
+    
+local me = ...
 
 local MEDIA_PATH = [[Interface\Addons\DarkSoulsDeathScreen\media\]]
 local YOU_DIED = MEDIA_PATH .. [[YOUDIED.tga]]
+local THANKS_OBAMA = MEDIA_PATH .. [[THANKSOBAMA.tga]]
 local YOU_DIED_SOUND = MEDIA_PATH .. [[YOUDIED.mp3]]
 local TEXTURE_WIDTH_HEIGHT_RATIO = 0.32 -- width / height
 
@@ -16,9 +21,10 @@ local FADE_OUT_DELAY = 0.4 -- in seconds
 local TEXT_END_DELAY = 0.5 -- in seconds
 local BACKGROUND_GRADIENT_PERCENT = 0.15 -- of background height
 local BACKGROUND_HEIGHT_PERCENT = 0.21 -- of screen height
-local TEXT_HEIGHT_PERCENT = 0.18 -- of screen height 
+local TEXT_HEIGHT_PERCENT = 0.18 -- of screen height
 
 local ScreenWidth, ScreenHeight = UIParent:GetSize()
+local db
 
 -- ------------------------------------------------------------------
 -- Init
@@ -122,7 +128,6 @@ local function SpawnText()
 		
 		-- "YOU DIED"
 		youDied.tex = youDied:CreateTexture()
-		youDied.tex:SetTexture(YOU_DIED)
 		youDied.tex:SetAllPoints()
 		
 		-- intial animation (fade-in + zoom)
@@ -168,6 +173,10 @@ local function SpawnText()
 		end)
 		youDied.show = show
 	end
+    
+    if youDied.tex:GetTexture() ~= db.tex then
+        youDied.tex:SetTexture(db.tex)
+    end
 	
 	local height = TEXT_HEIGHT_PERCENT * ScreenHeight
 	youDied:SetSize(height / TEXTURE_WIDTH_HEIGHT_RATIO, height)
@@ -179,15 +188,150 @@ end
 -- ------------------------------------------------------------------
 -- Event handlers
 -- ------------------------------------------------------------------
+DSFrame:RegisterEvent("ADDON_LOADED")
+function DSFrame:ADDON_LOADED(event, name)
+    if name == me then
+        DarkSoulsDeathScreen = DarkSoulsDeathScreen or {
+            --[[
+            default db
+            --]]
+            enabled = true,
+            sound = true,
+            tex = YOU_DIED,
+        }
+        db = DarkSoulsDeathScreen
+        if not db.enabled then
+            self:SetScript("OnEvent", nil)
+        end
+        self.ADDON_LOADED = nil
+    end
+end
+
 local SpiritOfRedemption = GetSpellInfo(20711)
 local FeignDeath = GetSpellInfo(5384)
 DSFrame:RegisterEvent("PLAYER_DEAD")
 function DSFrame:PLAYER_DEAD(event)
 	local SOR = UnitBuff("player", SpiritOfRedemption)
 	local FD = UnitBuff("player", FeignDeath)
-	if not (UnitBuff("player", SpiritOfRedemption) or UnitBuff("player", FeignDeath)) then
-		PlaySoundFile(YOU_DIED_SOUND, "Master")
+    -- event==nil means a fake event
+	if not event or not (UnitBuff("player", SpiritOfRedemption) or UnitBuff("player", FeignDeath)) then
+        if db.sound then
+            PlaySoundFile(YOU_DIED_SOUND, "Master")
+        end
 		SpawnBackground()
 		SpawnText()
 	end
+end
+
+-- ------------------------------------------------------------------
+-- Slash cmd
+-- ------------------------------------------------------------------
+local slash = "/dsds"
+SLASH_DARKSOULSDEATHSCREEN1 = slash
+
+local ADDON_COLOR = "ff999999"
+local function Print(msg)
+    print(("|c%sDSDS|r: %s"):format(ADDON_COLOR, msg))
+end
+
+local function OnOffString(bool)
+    return bool and "|cff00FF00enabled|r" or "|cffFF0000disabled|r"
+end
+
+local split = {}
+local function pack(...)
+    wipe(split)
+
+    local numArgs = select('#', ...)
+    for i = 1, numArgs do
+        split[i] = select(i, ...)
+    end
+    return split
+end
+
+local commands = {}
+commands["enable"] = function(args)
+    db.enabled = true
+    DSFrame:SetScript("OnEvent", OnEvent)
+    Print(OnOffString(db.enabled))
+end
+commands["on"] = commands["enable"] -- enable alias
+commands["disable"] = function(args)
+    db.enabled = false
+    DSFrame:SetScript("OnEvent", nil)
+    Print(OnOffString(db.enabled))
+end
+commands["off"] = commands["disable"] -- disable alias
+commands["sound"] = function(args)
+    local doPrint = true
+    local enable = args[1]
+    if enable then
+        if enable == "on" or enable == "true" then
+            db.sound = true
+        elseif enable == "off" or enable == "false" or enable == "nil" then
+            db.sound = false
+        else
+            Print(("Usage: %s sound [on/off]"):format(slash))
+            doPrint = false
+        end
+    else
+        -- toggle
+        db.sound = not db.sound
+    end
+    
+    if doPrint then
+        Print(("Sound %s"):format(OnOffString(db.sound)))
+    end
+end
+commands["tex"] = function(args)
+    local tex = args[1]
+    local currentTex = db.tex
+    if tex then
+        db.tex = tex
+    else
+        -- toggle
+        if currentTex == YOU_DIED then
+            db.tex = THANKS_OBAMA
+            tex = "THANKS OBAMA"
+        else
+            -- this will also default to "YOU DIED" if a custom texture path was set
+            db.tex = YOU_DIED
+            tex = "YOU DIED"
+        end
+    end
+    Print(("Texture set to '%s'"):format(tex))
+end
+commands["test"] = function(args)
+    DSFrame:PLAYER_DEAD()
+end
+
+local indent = "  "
+local usage = {
+    ("Usage: %s"):format(slash),
+    ("%s%s on/off: Enables/disables the death screen."),
+    ("%s%s sound [on/off]: Enables/disables the death screen sound. Toggles if passed no argument."),
+    ("%s%s tex [path\\to\\custom\\texture]: Toggles between the 'YOU DIED' and 'THANKS OBAMA' textures. If an argument is supplied, the custom texture will be used instead."),
+    ("%s%s test: Shows the death screen."),
+    ("%s%s help: Shows this message."),
+}
+do -- format the usage lines
+    for i = 2, #usage do
+        usage[i] = usage[i]:format(indent, slash)
+    end
+end
+commands["help"] = function(args)
+    for i = 1, #usage do
+        Print(usage[i])
+    end
+end
+commands["h"] = commands["help"] -- help alias
+
+local delim = " "
+function SlashCmdList.DARKSOULSDEATHSCREEN(msg)
+	msg = msg and msg:lower()
+    local args = pack(strsplit(delim, msg))
+    local cmd = remove(args, 1)
+	
+    local exec = cmd and type(commands[cmd]) == "function" and commands[cmd] or commands["h"]
+    exec(args)
 end
