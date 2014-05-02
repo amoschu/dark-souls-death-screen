@@ -62,6 +62,8 @@ local function BGFadeOut(self, e)
 	else
 		self:SetScript("OnUpdate", nil)
 		self.elapsed = nil
+        -- force the background to hide at the end of the animation
+        self:SetAlpha(0)
 	end
 end
 
