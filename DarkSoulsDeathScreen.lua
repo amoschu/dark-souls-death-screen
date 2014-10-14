@@ -9,7 +9,7 @@ local me = ...
 local MEDIA_PATH = [[Interface\Addons\DarkSoulsDeathScreen\media\]]
 local YOU_DIED = MEDIA_PATH .. [[YOUDIED.tga]]
 local THANKS_OBAMA = MEDIA_PATH .. [[THANKSOBAMA.tga]]
-local YOU_DIED_SOUND = MEDIA_PATH .. [[YOUDIED.mp3]]
+local YOU_DIED_SOUND = MEDIA_PATH .. [[YOUDIED.ogg]]
 local TEXTURE_WIDTH_HEIGHT_RATIO = 0.32 -- width / height
 
 local BG_END_ALPHA = 0.85 -- [0,1] alpha
