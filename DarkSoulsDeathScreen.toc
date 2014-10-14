@@ -1,7 +1,7 @@
-## Interface: 50400
+## Interface: 60000
 ## Title: Dark Souls Death Screen
 ## Author: Latreese
-## Notes: Praise the Sun! \o/
+## Notes: Praise the Sun! \[T]/
 
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
