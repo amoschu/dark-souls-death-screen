@@ -10,18 +10,38 @@ local MEDIA_PATH = [[Interface\Addons\DarkSoulsDeathScreen\media\]]
 local YOU_DIED = MEDIA_PATH .. [[YOUDIED.tga]]
 local THANKS_OBAMA = MEDIA_PATH .. [[THANKSOBAMA.tga]]
 local YOU_DIED_SOUND = MEDIA_PATH .. [[YOUDIED.ogg]]
-local TEXTURE_WIDTH_HEIGHT_RATIO = 0.32 -- width / height
+local BONFIRE_LIT = MEDIA_PATH .. [[BONFIRELIT.tga]]
+local BONFIRE_LIT_BLUR = MEDIA_PATH .. [[BONFIRELIT_BLUR.tga]]
+local BONFIRE_LIT_SOUND = MEDIA_PATH .. [[BONFIRELIT.ogg]]
+local YOU_DIED_WIDTH_HEIGHT_RATIO = 0.32 -- width / height
+local BONFIRE_WIDTH_HEIGHT_RATIO = 0.36 -- w / h
 
-local BG_END_ALPHA = 0.85 -- [0,1] alpha
+local BG_END_ALPHA = 0.75 -- [0,1] alpha
 local TEXT_END_ALPHA = 0.5 -- [0,1] alpha
+local BONFIRE_TEXT_END_ALPHA = 0.8 -- [0,1] alpha
+local BONFIRE_BLUR_TEXT_END_ALPHA = 0.63 -- [0,1] alpha
 local TEXT_SHOW_END_SCALE = 1.25 -- scale factor
+local BONFIRE_START_SCALE = 1.15 -- scale factor
+local BONFIRE_FLARE_SCALE_X = 1.1 -- scale factor
+local BONFIRE_FLARE_SCALE_Y = 1.065 -- scale factor
+local BONFIRE_FLARE_OUT_TIME = 0.22 -- seconds
+local BONFIRE_FLARE_IN_TIME = 0.6 -- seconds
+local TEXT_FADE_IN_DURATION = 0.15 -- seconds
 local FADE_IN_TIME = 0.45 -- in seconds
 local FADE_OUT_TIME = 0.3 -- in seconds
 local FADE_OUT_DELAY = 0.4 -- in seconds
 local TEXT_END_DELAY = 0.5 -- in seconds
+local BONFIRE_END_DELAY = 0.05 -- in seconds
 local BACKGROUND_GRADIENT_PERCENT = 0.15 -- of background height
 local BACKGROUND_HEIGHT_PERCENT = 0.21 -- of screen height
 local TEXT_HEIGHT_PERCENT = 0.18 -- of screen height
+
+-- TODO: ds2
+-- bg = 60% from top
+-- youdied: https://www.youtube.com/watch?v=KtLrVSrRruU&t=24m34s
+--      i dont think wow's animation system can do the text reveal that ds2 does
+--      need to set texcoords in an OnUpdate handler, i think..
+-- bonfire: https://www.youtube.com/watch?v=KtLrVSrRruU&t=2m49s
 
 local ScreenWidth, ScreenHeight = UIParent:GetSize()
 local db
@@ -112,7 +132,7 @@ local function SpawnBackground()
 	background:SetScript("OnUpdate", BGFadeIn)
 end
 
-local function FadeOutOnUpdate(self, e)
+local function HideBackgroundAfterDelay(self, e)
 	self.elapsed = (self.elapsed or 0) + e
 	if self.elapsed > FADE_OUT_DELAY then
 		background:SetScript("OnUpdate", BGFadeOut)
@@ -122,7 +142,7 @@ local function FadeOutOnUpdate(self, e)
 end
 
 local youDied
-local function SpawnText()
+local function YouDied()
 	if not youDied then
 		youDied = CreateFrame("Frame")
 		youDied:SetPoint("CENTER", 0, 0)
@@ -138,7 +158,7 @@ local function SpawnText()
 		fadein:SetChange(TEXT_END_ALPHA)
 		fadein:SetOrder(1)
 		fadein:SetStartDelay(FADE_IN_TIME)
-		fadein:SetDuration(FADE_IN_TIME + 0.15)
+		fadein:SetDuration(FADE_IN_TIME + TEXT_FADE_IN_DURATION)
 		fadein:SetEndDelay(TEXT_END_DELAY)
 		local zoom = show:CreateAnimation("Scale")
 		zoom:SetOrigin("CENTER", 0, 0)
@@ -165,9 +185,12 @@ local function SpawnText()
 			-- hide once the delay finishes
 			youDied:SetAlpha(TEXT_END_ALPHA)
 			youDied:SetScale(TEXT_SHOW_END_SCALE)
-			fadeout:SetScript("OnUpdate", FadeOutOnUpdate)
+			fadeout:SetScript("OnUpdate", HideBackgroundAfterDelay)
 			hide:Play()
 		end)
+        hide:SetScript("OnUpdate", function(self, e)
+            
+        end)
 		hide:SetScript("OnFinished", function(self)
 			-- reset to initial state
 			youDied:SetAlpha(0)
@@ -181,10 +204,136 @@ local function SpawnText()
     end
 	
 	local height = TEXT_HEIGHT_PERCENT * ScreenHeight
-	youDied:SetSize(height / TEXTURE_WIDTH_HEIGHT_RATIO, height)
+	youDied:SetSize(height / YOU_DIED_WIDTH_HEIGHT_RATIO, height)
 	youDied:SetAlpha(0)
 	youDied:SetScale(1)
 	youDied.show:Play()
+end
+
+local bonfireLit
+local bonfireLitAnimated
+local function LightBonfire()
+    if not bonfireLit then
+		bonfireLit = CreateFrame("Frame")
+		bonfireLit:SetPoint("CENTER", 0, 0)
+		bonfireLit:SetFrameStrata("HIGH")
+        
+		-- "BONFIRE LIT"
+		bonfireLit.tex = bonfireLit:CreateTexture()
+		bonfireLit.tex:SetAllPoints()
+        bonfireLit.tex:SetTexture(BONFIRE_LIT)
+        
+		-- intial animation (fade-in)
+		local show = bonfireLit:CreateAnimationGroup()
+		local fadein = show:CreateAnimation("Alpha")
+		fadein:SetChange(BONFIRE_TEXT_END_ALPHA)
+		fadein:SetOrder(1)
+		fadein:SetDuration(FADE_IN_TIME + TEXT_FADE_IN_DURATION)
+		fadein:SetEndDelay(TEXT_END_DELAY)
+        
+		-- hide animation (fade-out)
+		local hide = bonfireLit:CreateAnimationGroup()
+		local fadeout = hide:CreateAnimation("Alpha")
+		fadeout:SetChange(-1)
+		fadeout:SetOrder(1)
+		fadeout:SetSmoothing("IN_OUT")
+		fadeout:SetStartDelay(FADE_OUT_DELAY)
+		fadeout:SetDuration(FADE_OUT_TIME + FADE_OUT_DELAY)
+        
+		show:SetScript("OnFinished", function(self)
+			-- hide once the delay finishes
+			bonfireLit:SetAlpha(BONFIRE_TEXT_END_ALPHA)
+		end)
+		hide:SetScript("OnFinished", function(self)
+			-- reset to initial state
+			bonfireLit:SetAlpha(0)
+		end)
+		bonfireLit.show = show
+        bonfireLit.hide = hide
+    end
+    
+    if not bonfireLitAnimated then
+		bonfireLitAnimated = CreateFrame("Frame")
+		bonfireLitAnimated:SetPoint("CENTER", 0, 0)
+		bonfireLitAnimated:SetFrameStrata("HIGH")
+    
+        -- animated "BONFIRE LIT"
+		bonfireLitAnimated.tex = bonfireLitAnimated:CreateTexture()
+		bonfireLitAnimated.tex:SetAllPoints()
+        bonfireLitAnimated.tex:SetTexture(BONFIRE_LIT_BLUR)
+		
+		-- intial animation (fade-in + flare)
+		local show = bonfireLitAnimated:CreateAnimationGroup()
+		local fadein = show:CreateAnimation("Alpha")
+		fadein:SetChange(BONFIRE_BLUR_TEXT_END_ALPHA)
+		fadein:SetOrder(1)
+        -- delay the flare animation until the base texture is almost fully visible
+		fadein:SetStartDelay(FADE_IN_TIME * 0.75)
+		fadein:SetDuration(FADE_IN_TIME + TEXT_FADE_IN_DURATION)
+		--fadein:SetEndDelay(TEXT_END_DELAY)
+		local flareOut = show:CreateAnimation("Scale")
+		flareOut:SetOrigin("CENTER", 0, 0)
+		flareOut:SetScale(BONFIRE_FLARE_SCALE_X, BONFIRE_FLARE_SCALE_Y) -- flare out
+		flareOut:SetOrder(1)
+        flareOut:SetSmoothing("OUT")
+        flareOut:SetStartDelay(FADE_IN_TIME + TEXT_FADE_IN_DURATION)
+        flareOut:SetEndDelay(0.1)
+		flareOut:SetDuration(BONFIRE_FLARE_OUT_TIME)
+        
+        local flareIn = show:CreateAnimation("Scale")
+		flareIn:SetOrigin("CENTER", 0, 0)
+        -- scale back down (just a little larger than the starting amount)
+        local xScale = (1 / BONFIRE_FLARE_SCALE_X) + 0.021
+		flareIn:SetScale(xScale, 1 / BONFIRE_FLARE_SCALE_Y)
+		flareIn:SetOrder(2)
+        flareIn:SetSmoothing("OUT")
+		flareIn:SetDuration(BONFIRE_FLARE_IN_TIME)
+		flareIn:SetEndDelay(BONFIRE_END_DELAY)
+		
+		-- hide animation (fade-out)
+		local hide = bonfireLitAnimated:CreateAnimationGroup()
+		local fadeout = hide:CreateAnimation("Alpha")
+		fadeout:SetChange(-1)
+		fadeout:SetOrder(1)
+		fadeout:SetSmoothing("IN_OUT")
+		fadeout:SetStartDelay(FADE_OUT_DELAY)
+		fadeout:SetDuration(FADE_OUT_TIME + FADE_OUT_DELAY)
+        
+        flareIn:SetScript("OnFinished", function(self)
+            -- set the end scale of the animation to prevent the frame
+            -- from snapping to its original scale
+            local xScale, yScale = self:GetScale()
+            local height = TEXT_HEIGHT_PERCENT * ScreenHeight
+            local width = height / BONFIRE_WIDTH_HEIGHT_RATIO
+            bonfireLitAnimated:SetSize(width * BONFIRE_FLARE_SCALE_X * xScale, height * BONFIRE_FLARE_SCALE_Y * yScale)
+        end)
+        
+        show:SetScript("OnFinished", function(self)
+			-- hide once the delay finishes
+			bonfireLitAnimated:SetAlpha(BONFIRE_BLUR_TEXT_END_ALPHA)
+            
+			fadeout:SetScript("OnUpdate", HideBackgroundAfterDelay)
+			hide:Play()
+            bonfireLit.hide:Play()
+		end)
+		hide:SetScript("OnFinished", function(self)
+			-- reset to initial state
+			bonfireLitAnimated:SetAlpha(0)
+			bonfireLitAnimated:SetScale(BONFIRE_START_SCALE)
+		end)
+		bonfireLitAnimated.show = show
+	end
+	
+	local height = TEXT_HEIGHT_PERCENT * ScreenHeight
+	bonfireLit:SetSize(height / BONFIRE_WIDTH_HEIGHT_RATIO, height)
+	bonfireLit:SetAlpha(0)
+	bonfireLit:SetScale(BONFIRE_START_SCALE)
+    bonfireLit.show:Play()
+    
+    bonfireLitAnimated:SetSize(height / BONFIRE_WIDTH_HEIGHT_RATIO, height)
+    bonfireLitAnimated:SetAlpha(0)
+    bonfireLitAnimated:SetScale(BONFIRE_START_SCALE)
+	bonfireLitAnimated.show:Play()
 end
 
 -- ------------------------------------------------------------------
@@ -220,9 +369,28 @@ function DSFrame:PLAYER_DEAD(event)
         if db.sound then
             PlaySoundFile(YOU_DIED_SOUND, "Master")
         end
+        
+        -- TODO: cancel other anims (ie, bonfire lit)
+        
 		SpawnBackground()
-		SpawnText()
+		YouDied()
 	end
+end
+
+local ENKINDLE_BONFIRE = 174723
+DSFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+function DSFrame:UNIT_SPELLCAST_SUCCEEDED(event, unit, spell, rank, lineId, spellId)
+    if (spellId == ENKINDLE_BONFIRE and unit == "player") or not event then
+        if db.sound then
+            PlaySoundFile(BONFIRE_LIT_SOUND, "Master")
+        end
+        -- TODO: delay in case player chain casts
+        
+        SpawnBackground()
+        LightBonfire()
+        
+        -- https://www.youtube.com/watch?v=HUS_5ao5WEQ&t=6m8s
+    end
 end
 
 -- ------------------------------------------------------------------
@@ -304,7 +472,12 @@ commands["tex"] = function(args)
     Print(("Texture set to '%s'"):format(tex))
 end
 commands["test"] = function(args)
-    DSFrame:PLAYER_DEAD()
+    local anim = args[1]
+    if anim == "b" or anim == "bonfire" then
+        DSFrame:UNIT_SPELLCAST_SUCCEEDED()
+    else
+        DSFrame:PLAYER_DEAD()
+    end
 end
 
 local indent = "  "
