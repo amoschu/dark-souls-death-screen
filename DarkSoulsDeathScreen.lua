@@ -2,7 +2,7 @@
 local print, strsplit, select, wipe, remove
     = print, strsplit, select, wipe, table.remove
 local CreateFrame, GetSpellInfo, PlaySoundFile, UIParent, UnitBuff
-	= CreateFrame, GetSpellInfo, PlaySoundFile, UIParent, UnitBuff
+    = CreateFrame, GetSpellInfo, PlaySoundFile, UIParent, UnitBuff
     
 local me = ...
 
@@ -51,9 +51,9 @@ local db
 -- ------------------------------------------------------------------
 local type = type
 local function OnEvent(self, event, ...)
-	if type(self[event]) == "function" then
-		self[event](self, event, ...)
-	end
+    if type(self[event]) == "function" then
+        self[event](self, event, ...)
+    end
 end
 
 local DSFrame = CreateFrame("Frame") -- helper frame
@@ -64,240 +64,240 @@ DSFrame:SetScript("OnEvent", OnEvent)
 -- ------------------------------------------------------------------
 local UPDATE_TIME = 0.04
 local function BGFadeIn(self, e)
-	self.elapsed = (self.elapsed or 0) + e
-	local progress = self.elapsed / FADE_IN_TIME
-	if progress <= 1 then
-		self:SetAlpha(progress * BG_END_ALPHA)
-	else
-		self:SetScript("OnUpdate", nil)
-		self.elapsed = nil
-	end
+    self.elapsed = (self.elapsed or 0) + e
+    local progress = self.elapsed / FADE_IN_TIME
+    if progress <= 1 then
+        self:SetAlpha(progress * BG_END_ALPHA)
+    else
+        self:SetScript("OnUpdate", nil)
+        self.elapsed = nil
+    end
 end
 
 local function BGFadeOut(self, e)
-	self.elapsed = (self.elapsed or 0) + e
-	local progress = 1 - (self.elapsed / FADE_OUT_TIME)
-	if progress >= 0 then
-		self:SetAlpha(progress * BG_END_ALPHA)
-	else
-		self:SetScript("OnUpdate", nil)
-		self.elapsed = nil
+    self.elapsed = (self.elapsed or 0) + e
+    local progress = 1 - (self.elapsed / FADE_OUT_TIME)
+    if progress >= 0 then
+        self:SetAlpha(progress * BG_END_ALPHA)
+    else
+        self:SetScript("OnUpdate", nil)
+        self.elapsed = nil
         -- force the background to hide at the end of the animation
         self:SetAlpha(0)
-	end
+    end
 end
 
 local background
 local function SpawnBackground()
-	if not background then
-		background = CreateFrame("Frame")
-		background:SetPoint("CENTER", 0, 0)
-		background:SetFrameStrata("MEDIUM")
-		
-		local bg = background:CreateTexture()
-		bg:SetTexture(0, 0, 0)
-		background.bg = bg
-		
-		local top = background:CreateTexture()
-		top:SetTexture(0, 0, 0)
-		top:SetGradientAlpha("VERTICAL", 0, 0, 0, 1, 0, 0, 0, 0) -- orientation, startR, startG, startB, startA, endR, endG, endB, endA (start = bottom, end = top)
-		background.top = top
-		
-		local btm = background:CreateTexture()
-		btm:SetTexture(0, 0, 0)
-		btm:SetGradientAlpha("VERTICAL", 0, 0, 0, 0, 0, 0, 0, 1)
-		background.btm = btm
-	end
-	
-	local height = BACKGROUND_HEIGHT_PERCENT * ScreenHeight
-	local bgHeight = BACKGROUND_GRADIENT_PERCENT * height
-	background:SetSize(ScreenWidth, height)
-	
-	-- size the background's constituent components
-	background.top:ClearAllPoints()
-	background.top:SetPoint("TOPLEFT", 0, 0)
-	background.top:SetPoint("BOTTOMRIGHT", background, "TOPRIGHT", 0, -bgHeight)
-	
-	background.bg:ClearAllPoints()
-	background.bg:SetPoint("TOPLEFT", 0, -bgHeight)
-	background.bg:SetPoint("BOTTOMRIGHT", 0, bgHeight)
-	
-	background.btm:ClearAllPoints()
-	background.btm:SetPoint("BOTTOMLEFT", 0, 0)
-	background.btm:SetPoint("TOPRIGHT", background, "BOTTOMRIGHT", 0, bgHeight)
-	
-	background:SetAlpha(0)
-	-- ideally this would use Animations, but they seem to set the alpha on all elements in the region which destroys the alpha gradient
-	-- ie, the background becomes just a solid-color rectangle
-	background:SetScript("OnUpdate", BGFadeIn)
+    if not background then
+        background = CreateFrame("Frame")
+        background:SetPoint("CENTER", 0, 0)
+        background:SetFrameStrata("MEDIUM")
+        
+        local bg = background:CreateTexture()
+        bg:SetTexture(0, 0, 0)
+        background.bg = bg
+        
+        local top = background:CreateTexture()
+        top:SetTexture(0, 0, 0)
+        top:SetGradientAlpha("VERTICAL", 0, 0, 0, 1, 0, 0, 0, 0) -- orientation, startR, startG, startB, startA, endR, endG, endB, endA (start = bottom, end = top)
+        background.top = top
+        
+        local btm = background:CreateTexture()
+        btm:SetTexture(0, 0, 0)
+        btm:SetGradientAlpha("VERTICAL", 0, 0, 0, 0, 0, 0, 0, 1)
+        background.btm = btm
+    end
+    
+    local height = BACKGROUND_HEIGHT_PERCENT * ScreenHeight
+    local bgHeight = BACKGROUND_GRADIENT_PERCENT * height
+    background:SetSize(ScreenWidth, height)
+    
+    -- size the background's constituent components
+    background.top:ClearAllPoints()
+    background.top:SetPoint("TOPLEFT", 0, 0)
+    background.top:SetPoint("BOTTOMRIGHT", background, "TOPRIGHT", 0, -bgHeight)
+    
+    background.bg:ClearAllPoints()
+    background.bg:SetPoint("TOPLEFT", 0, -bgHeight)
+    background.bg:SetPoint("BOTTOMRIGHT", 0, bgHeight)
+    
+    background.btm:ClearAllPoints()
+    background.btm:SetPoint("BOTTOMLEFT", 0, 0)
+    background.btm:SetPoint("TOPRIGHT", background, "BOTTOMRIGHT", 0, bgHeight)
+    
+    background:SetAlpha(0)
+    -- ideally this would use Animations, but they seem to set the alpha on all elements in the region which destroys the alpha gradient
+    -- ie, the background becomes just a solid-color rectangle
+    background:SetScript("OnUpdate", BGFadeIn)
 end
 
 local function HideBackgroundAfterDelay(self, e)
-	self.elapsed = (self.elapsed or 0) + e
-	if self.elapsed > FADE_OUT_DELAY then
-		background:SetScript("OnUpdate", BGFadeOut)
-		self:SetScript("OnUpdate", nil)
-		self.elapsed = nil
-	end
+    self.elapsed = (self.elapsed or 0) + e
+    if self.elapsed > FADE_OUT_DELAY then
+        background:SetScript("OnUpdate", BGFadeOut)
+        self:SetScript("OnUpdate", nil)
+        self.elapsed = nil
+    end
 end
 
 local youDied
 local function YouDied()
-	if not youDied then
-		youDied = CreateFrame("Frame")
-		youDied:SetPoint("CENTER", 0, 0)
-		youDied:SetFrameStrata("HIGH")
-		
-		-- "YOU DIED"
-		youDied.tex = youDied:CreateTexture()
-		youDied.tex:SetAllPoints()
-		
-		-- intial animation (fade-in + zoom)
-		local show = youDied:CreateAnimationGroup()
-		local fadein = show:CreateAnimation("Alpha")
-		fadein:SetChange(TEXT_END_ALPHA)
-		fadein:SetOrder(1)
-		fadein:SetStartDelay(FADE_IN_TIME)
-		fadein:SetDuration(FADE_IN_TIME + TEXT_FADE_IN_DURATION)
-		fadein:SetEndDelay(TEXT_END_DELAY)
-		local zoom = show:CreateAnimation("Scale")
-		zoom:SetOrigin("CENTER", 0, 0)
-		zoom:SetScale(TEXT_SHOW_END_SCALE, TEXT_SHOW_END_SCALE)
-		zoom:SetOrder(1)
-		zoom:SetDuration(1.3)
-		zoom:SetEndDelay(TEXT_END_DELAY)
-		
-		-- hide animation (fade-out + slower zoom)
-		local hide = youDied:CreateAnimationGroup()
-		local fadeout = hide:CreateAnimation("Alpha")
-		fadeout:SetChange(-1)
-		fadeout:SetOrder(1)
-		fadeout:SetSmoothing("IN_OUT")
-		fadeout:SetStartDelay(FADE_OUT_DELAY)
-		fadeout:SetDuration(FADE_OUT_TIME + FADE_OUT_DELAY)
-		local zoom = hide:CreateAnimation("Scale")
-		zoom:SetOrigin("CENTER", 0, 0)
-		zoom:SetScale(1.07, 1.038)
-		zoom:SetOrder(1)
-		zoom:SetDuration(FADE_OUT_TIME + FADE_OUT_DELAY + 0.3)
-		
-		show:SetScript("OnFinished", function(self)
-			-- hide once the delay finishes
-			youDied:SetAlpha(TEXT_END_ALPHA)
-			youDied:SetScale(TEXT_SHOW_END_SCALE)
-			fadeout:SetScript("OnUpdate", HideBackgroundAfterDelay)
-			hide:Play()
-		end)
+    if not youDied then
+        youDied = CreateFrame("Frame")
+        youDied:SetPoint("CENTER", 0, 0)
+        youDied:SetFrameStrata("HIGH")
+        
+        -- "YOU DIED"
+        youDied.tex = youDied:CreateTexture()
+        youDied.tex:SetAllPoints()
+        
+        -- intial animation (fade-in + zoom)
+        local show = youDied:CreateAnimationGroup()
+        local fadein = show:CreateAnimation("Alpha")
+        fadein:SetChange(TEXT_END_ALPHA)
+        fadein:SetOrder(1)
+        fadein:SetStartDelay(FADE_IN_TIME)
+        fadein:SetDuration(FADE_IN_TIME + TEXT_FADE_IN_DURATION)
+        fadein:SetEndDelay(TEXT_END_DELAY)
+        local zoom = show:CreateAnimation("Scale")
+        zoom:SetOrigin("CENTER", 0, 0)
+        zoom:SetScale(TEXT_SHOW_END_SCALE, TEXT_SHOW_END_SCALE)
+        zoom:SetOrder(1)
+        zoom:SetDuration(1.3)
+        zoom:SetEndDelay(TEXT_END_DELAY)
+        
+        -- hide animation (fade-out + slower zoom)
+        local hide = youDied:CreateAnimationGroup()
+        local fadeout = hide:CreateAnimation("Alpha")
+        fadeout:SetChange(-1)
+        fadeout:SetOrder(1)
+        fadeout:SetSmoothing("IN_OUT")
+        fadeout:SetStartDelay(FADE_OUT_DELAY)
+        fadeout:SetDuration(FADE_OUT_TIME + FADE_OUT_DELAY)
+        local zoom = hide:CreateAnimation("Scale")
+        zoom:SetOrigin("CENTER", 0, 0)
+        zoom:SetScale(1.07, 1.038)
+        zoom:SetOrder(1)
+        zoom:SetDuration(FADE_OUT_TIME + FADE_OUT_DELAY + 0.3)
+        
+        show:SetScript("OnFinished", function(self)
+            -- hide once the delay finishes
+            youDied:SetAlpha(TEXT_END_ALPHA)
+            youDied:SetScale(TEXT_SHOW_END_SCALE)
+            fadeout:SetScript("OnUpdate", HideBackgroundAfterDelay)
+            hide:Play()
+        end)
         hide:SetScript("OnUpdate", function(self, e)
             
         end)
-		hide:SetScript("OnFinished", function(self)
-			-- reset to initial state
-			youDied:SetAlpha(0)
-			youDied:SetScale(1)
-		end)
-		youDied.show = show
-	end
+        hide:SetScript("OnFinished", function(self)
+            -- reset to initial state
+            youDied:SetAlpha(0)
+            youDied:SetScale(1)
+        end)
+        youDied.show = show
+    end
     
     if youDied.tex:GetTexture() ~= db.tex then
         youDied.tex:SetTexture(db.tex)
     end
-	
-	local height = TEXT_HEIGHT_PERCENT * ScreenHeight
-	youDied:SetSize(height / YOU_DIED_WIDTH_HEIGHT_RATIO, height)
-	youDied:SetAlpha(0)
-	youDied:SetScale(1)
-	youDied.show:Play()
+    
+    local height = TEXT_HEIGHT_PERCENT * ScreenHeight
+    youDied:SetSize(height / YOU_DIED_WIDTH_HEIGHT_RATIO, height)
+    youDied:SetAlpha(0)
+    youDied:SetScale(1)
+    youDied.show:Play()
 end
 
 local bonfireLit
 local bonfireLitAnimated
 local function LightBonfire()
     if not bonfireLit then
-		bonfireLit = CreateFrame("Frame")
-		bonfireLit:SetPoint("CENTER", 0, 0)
-		bonfireLit:SetFrameStrata("HIGH")
+        bonfireLit = CreateFrame("Frame")
+        bonfireLit:SetPoint("CENTER", 0, 0)
+        bonfireLit:SetFrameStrata("HIGH")
         
-		-- "BONFIRE LIT"
-		bonfireLit.tex = bonfireLit:CreateTexture()
-		bonfireLit.tex:SetAllPoints()
+        -- "BONFIRE LIT"
+        bonfireLit.tex = bonfireLit:CreateTexture()
+        bonfireLit.tex:SetAllPoints()
         bonfireLit.tex:SetTexture(BONFIRE_LIT)
         
-		-- intial animation (fade-in)
-		local show = bonfireLit:CreateAnimationGroup()
-		local fadein = show:CreateAnimation("Alpha")
-		fadein:SetChange(BONFIRE_TEXT_END_ALPHA)
-		fadein:SetOrder(1)
-		fadein:SetDuration(FADE_IN_TIME + TEXT_FADE_IN_DURATION)
-		fadein:SetEndDelay(TEXT_END_DELAY)
+        -- intial animation (fade-in)
+        local show = bonfireLit:CreateAnimationGroup()
+        local fadein = show:CreateAnimation("Alpha")
+        fadein:SetChange(BONFIRE_TEXT_END_ALPHA)
+        fadein:SetOrder(1)
+        fadein:SetDuration(FADE_IN_TIME + TEXT_FADE_IN_DURATION)
+        fadein:SetEndDelay(TEXT_END_DELAY)
         
-		-- hide animation (fade-out)
-		local hide = bonfireLit:CreateAnimationGroup()
-		local fadeout = hide:CreateAnimation("Alpha")
-		fadeout:SetChange(-1)
-		fadeout:SetOrder(1)
-		fadeout:SetSmoothing("IN_OUT")
-		fadeout:SetStartDelay(FADE_OUT_DELAY)
-		fadeout:SetDuration(FADE_OUT_TIME + FADE_OUT_DELAY)
+        -- hide animation (fade-out)
+        local hide = bonfireLit:CreateAnimationGroup()
+        local fadeout = hide:CreateAnimation("Alpha")
+        fadeout:SetChange(-1)
+        fadeout:SetOrder(1)
+        fadeout:SetSmoothing("IN_OUT")
+        fadeout:SetStartDelay(FADE_OUT_DELAY)
+        fadeout:SetDuration(FADE_OUT_TIME + FADE_OUT_DELAY)
         
-		show:SetScript("OnFinished", function(self)
-			-- hide once the delay finishes
-			bonfireLit:SetAlpha(BONFIRE_TEXT_END_ALPHA)
-		end)
-		hide:SetScript("OnFinished", function(self)
-			-- reset to initial state
-			bonfireLit:SetAlpha(0)
-		end)
-		bonfireLit.show = show
+        show:SetScript("OnFinished", function(self)
+            -- hide once the delay finishes
+            bonfireLit:SetAlpha(BONFIRE_TEXT_END_ALPHA)
+        end)
+        hide:SetScript("OnFinished", function(self)
+            -- reset to initial state
+            bonfireLit:SetAlpha(0)
+        end)
+        bonfireLit.show = show
         bonfireLit.hide = hide
     end
     
     if not bonfireLitAnimated then
-		bonfireLitAnimated = CreateFrame("Frame")
-		bonfireLitAnimated:SetPoint("CENTER", 0, 0)
-		bonfireLitAnimated:SetFrameStrata("HIGH")
+        bonfireLitAnimated = CreateFrame("Frame")
+        bonfireLitAnimated:SetPoint("CENTER", 0, 0)
+        bonfireLitAnimated:SetFrameStrata("HIGH")
     
         -- animated "BONFIRE LIT"
-		bonfireLitAnimated.tex = bonfireLitAnimated:CreateTexture()
-		bonfireLitAnimated.tex:SetAllPoints()
+        bonfireLitAnimated.tex = bonfireLitAnimated:CreateTexture()
+        bonfireLitAnimated.tex:SetAllPoints()
         bonfireLitAnimated.tex:SetTexture(BONFIRE_LIT_BLUR)
-		
-		-- intial animation (fade-in + flare)
-		local show = bonfireLitAnimated:CreateAnimationGroup()
-		local fadein = show:CreateAnimation("Alpha")
-		fadein:SetChange(BONFIRE_BLUR_TEXT_END_ALPHA)
-		fadein:SetOrder(1)
+        
+        -- intial animation (fade-in + flare)
+        local show = bonfireLitAnimated:CreateAnimationGroup()
+        local fadein = show:CreateAnimation("Alpha")
+        fadein:SetChange(BONFIRE_BLUR_TEXT_END_ALPHA)
+        fadein:SetOrder(1)
         -- delay the flare animation until the base texture is almost fully visible
-		fadein:SetStartDelay(FADE_IN_TIME * 0.75)
-		fadein:SetDuration(FADE_IN_TIME + TEXT_FADE_IN_DURATION)
-		--fadein:SetEndDelay(TEXT_END_DELAY)
-		local flareOut = show:CreateAnimation("Scale")
-		flareOut:SetOrigin("CENTER", 0, 0)
-		flareOut:SetScale(BONFIRE_FLARE_SCALE_X, BONFIRE_FLARE_SCALE_Y) -- flare out
-		flareOut:SetOrder(1)
+        fadein:SetStartDelay(FADE_IN_TIME * 0.75)
+        fadein:SetDuration(FADE_IN_TIME + TEXT_FADE_IN_DURATION)
+        --fadein:SetEndDelay(TEXT_END_DELAY)
+        local flareOut = show:CreateAnimation("Scale")
+        flareOut:SetOrigin("CENTER", 0, 0)
+        flareOut:SetScale(BONFIRE_FLARE_SCALE_X, BONFIRE_FLARE_SCALE_Y) -- flare out
+        flareOut:SetOrder(1)
         flareOut:SetSmoothing("OUT")
         flareOut:SetStartDelay(FADE_IN_TIME + TEXT_FADE_IN_DURATION)
         flareOut:SetEndDelay(0.1)
-		flareOut:SetDuration(BONFIRE_FLARE_OUT_TIME)
+        flareOut:SetDuration(BONFIRE_FLARE_OUT_TIME)
         
         local flareIn = show:CreateAnimation("Scale")
-		flareIn:SetOrigin("CENTER", 0, 0)
+        flareIn:SetOrigin("CENTER", 0, 0)
         -- scale back down (just a little larger than the starting amount)
         local xScale = (1 / BONFIRE_FLARE_SCALE_X) + 0.021
-		flareIn:SetScale(xScale, 1 / BONFIRE_FLARE_SCALE_Y)
-		flareIn:SetOrder(2)
+        flareIn:SetScale(xScale, 1 / BONFIRE_FLARE_SCALE_Y)
+        flareIn:SetOrder(2)
         flareIn:SetSmoothing("OUT")
-		flareIn:SetDuration(BONFIRE_FLARE_IN_TIME)
-		flareIn:SetEndDelay(BONFIRE_END_DELAY)
-		
-		-- hide animation (fade-out)
-		local hide = bonfireLitAnimated:CreateAnimationGroup()
-		local fadeout = hide:CreateAnimation("Alpha")
-		fadeout:SetChange(-1)
-		fadeout:SetOrder(1)
-		fadeout:SetSmoothing("IN_OUT")
-		fadeout:SetStartDelay(FADE_OUT_DELAY)
-		fadeout:SetDuration(FADE_OUT_TIME + FADE_OUT_DELAY)
+        flareIn:SetDuration(BONFIRE_FLARE_IN_TIME)
+        flareIn:SetEndDelay(BONFIRE_END_DELAY)
+        
+        -- hide animation (fade-out)
+        local hide = bonfireLitAnimated:CreateAnimationGroup()
+        local fadeout = hide:CreateAnimation("Alpha")
+        fadeout:SetChange(-1)
+        fadeout:SetOrder(1)
+        fadeout:SetSmoothing("IN_OUT")
+        fadeout:SetStartDelay(FADE_OUT_DELAY)
+        fadeout:SetDuration(FADE_OUT_TIME + FADE_OUT_DELAY)
         
         flareIn:SetScript("OnFinished", function(self)
             -- set the end scale of the animation to prevent the frame
@@ -309,31 +309,31 @@ local function LightBonfire()
         end)
         
         show:SetScript("OnFinished", function(self)
-			-- hide once the delay finishes
-			bonfireLitAnimated:SetAlpha(BONFIRE_BLUR_TEXT_END_ALPHA)
+            -- hide once the delay finishes
+            bonfireLitAnimated:SetAlpha(BONFIRE_BLUR_TEXT_END_ALPHA)
             
-			fadeout:SetScript("OnUpdate", HideBackgroundAfterDelay)
-			hide:Play()
+            fadeout:SetScript("OnUpdate", HideBackgroundAfterDelay)
+            hide:Play()
             bonfireLit.hide:Play()
-		end)
-		hide:SetScript("OnFinished", function(self)
-			-- reset to initial state
-			bonfireLitAnimated:SetAlpha(0)
-			bonfireLitAnimated:SetScale(BONFIRE_START_SCALE)
-		end)
-		bonfireLitAnimated.show = show
-	end
-	
-	local height = TEXT_HEIGHT_PERCENT * ScreenHeight
-	bonfireLit:SetSize(height / BONFIRE_WIDTH_HEIGHT_RATIO, height)
-	bonfireLit:SetAlpha(0)
-	bonfireLit:SetScale(BONFIRE_START_SCALE)
+        end)
+        hide:SetScript("OnFinished", function(self)
+            -- reset to initial state
+            bonfireLitAnimated:SetAlpha(0)
+            bonfireLitAnimated:SetScale(BONFIRE_START_SCALE)
+        end)
+        bonfireLitAnimated.show = show
+    end
+    
+    local height = TEXT_HEIGHT_PERCENT * ScreenHeight
+    bonfireLit:SetSize(height / BONFIRE_WIDTH_HEIGHT_RATIO, height)
+    bonfireLit:SetAlpha(0)
+    bonfireLit:SetScale(BONFIRE_START_SCALE)
     bonfireLit.show:Play()
     
     bonfireLitAnimated:SetSize(height / BONFIRE_WIDTH_HEIGHT_RATIO, height)
     bonfireLitAnimated:SetAlpha(0)
     bonfireLitAnimated:SetScale(BONFIRE_START_SCALE)
-	bonfireLitAnimated.show:Play()
+    bonfireLitAnimated.show:Play()
 end
 
 -- ------------------------------------------------------------------
@@ -362,19 +362,19 @@ local SpiritOfRedemption = GetSpellInfo(20711)
 local FeignDeath = GetSpellInfo(5384)
 DSFrame:RegisterEvent("PLAYER_DEAD")
 function DSFrame:PLAYER_DEAD(event)
-	local SOR = UnitBuff("player", SpiritOfRedemption)
-	local FD = UnitBuff("player", FeignDeath)
+    local SOR = UnitBuff("player", SpiritOfRedemption)
+    local FD = UnitBuff("player", FeignDeath)
     -- event==nil means a fake event
-	if not event or not (UnitBuff("player", SpiritOfRedemption) or UnitBuff("player", FeignDeath)) then
+    if not event or not (UnitBuff("player", SpiritOfRedemption) or UnitBuff("player", FeignDeath)) then
         if db.sound then
             PlaySoundFile(YOU_DIED_SOUND, "Master")
         end
         
         -- TODO: cancel other anims (ie, bonfire lit)
         
-		SpawnBackground()
-		YouDied()
-	end
+        SpawnBackground()
+        YouDied()
+    end
 end
 
 local ENKINDLE_BONFIRE = 174723
@@ -503,10 +503,10 @@ commands["h"] = commands["help"] -- help alias
 
 local delim = " "
 function SlashCmdList.DARKSOULSDEATHSCREEN(msg)
-	msg = msg and msg:lower()
+    msg = msg and msg:lower()
     local args = pack(strsplit(delim, msg))
     local cmd = remove(args, 1)
-	
+    
     local exec = cmd and type(commands[cmd]) == "function" and commands[cmd] or commands["h"]
     exec(args)
 end
