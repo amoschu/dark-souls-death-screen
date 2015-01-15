@@ -3,3 +3,6 @@ package-as: DarkSoulsDeathScreen
 ignore:
     - LICENSE
     - README.md
+    - media/wip_bonfire.aup
+    - media/wip_bonfire.ogg
+    - media/wip_bonfire_data
