@@ -101,57 +101,57 @@ local background = {} -- bg frames
 
 local SpawnBackground = {
     [1] = function()
-        local bg = background[1]
-        if not bg then
-            bg = CreateFrame("Frame")
-            background[1] = bg
+        local frame = background[1]
+        if not frame then
+            frame = CreateFrame("Frame")
+            background[1] = frame
             
-            bg:SetPoint("CENTER", 0, 0)
-            bg:SetFrameStrata("MEDIUM")
+            frame:SetPoint("CENTER", 0, 0)
+            frame:SetFrameStrata("MEDIUM")
             
-            local bg = bg:CreateTexture()
+            local bg = frame:CreateTexture()
             bg:SetTexture(0, 0, 0)
-            bg.bg = bg
+            frame.bg = bg
             
-            local top = bg:CreateTexture()
+            local top = frame:CreateTexture()
             top:SetTexture(0, 0, 0)
             top:SetGradientAlpha("VERTICAL", 0, 0, 0, 1, 0, 0, 0, 0) -- orientation, startR, startG, startB, startA, endR, endG, endB, endA (start = bottom, end = top)
-            bg.top = top
+            frame.top = top
             
-            local btm = bg:CreateTexture()
+            local btm = frame:CreateTexture()
             btm:SetTexture(0, 0, 0)
             btm:SetGradientAlpha("VERTICAL", 0, 0, 0, 0, 0, 0, 0, 1)
-            bg.btm = btm
+            frame.btm = btm
         end
         
         local height = BACKGROUND_HEIGHT_PERCENT * ScreenHeight
         local bgHeight = BACKGROUND_GRADIENT_PERCENT * height
-        bg:SetSize(ScreenWidth, height)
+        frame:SetSize(ScreenWidth, height)
         
         -- size the background's constituent components
-        bg.top:ClearAllPoints()
-        bg.top:SetPoint("TOPLEFT", 0, 0)
-        bg.top:SetPoint("BOTTOMRIGHT", background, "TOPRIGHT", 0, -bgHeight)
+        frame.top:ClearAllPoints()
+        frame.top:SetPoint("TOPLEFT", 0, 0)
+        frame.top:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT", 0, -bgHeight)
         
-        bg.bg:ClearAllPoints()
-        bg.bg:SetPoint("TOPLEFT", 0, -bgHeight)
-        bg.bg:SetPoint("BOTTOMRIGHT", 0, bgHeight)
+        frame.bg:ClearAllPoints()
+        frame.bg:SetPoint("TOPLEFT", 0, -bgHeight)
+        frame.bg:SetPoint("BOTTOMRIGHT", 0, bgHeight)
         
-        bg.btm:ClearAllPoints()
-        bg.btm:SetPoint("BOTTOMLEFT", 0, 0)
-        bg.btm:SetPoint("TOPRIGHT", background, "BOTTOMRIGHT", 0, bgHeight)
+        frame.btm:ClearAllPoints()
+        frame.btm:SetPoint("BOTTOMLEFT", 0, 0)
+        frame.btm:SetPoint("TOPRIGHT", frame, "BOTTOMRIGHT", 0, bgHeight)
         
-        bg:SetAlpha(0)
+        frame:SetAlpha(0)
         -- ideally this would use Animations, but they seem to set the alpha on all elements in the region which destroys the alpha gradient
         -- ie, the background becomes just a solid-color rectangle
-        bg:SetScript("OnUpdate", BGFadeIn)
+        frame:SetScript("OnUpdate", BGFadeIn)
     end,
     
     [2] = function()
-        local bg = background[2]
-        if not bg then
-            bg = CreatFrame("Frame")
-            background[2] = bg
+        local frame = background[2]
+        if not frame then
+            frame = CreatFrame("Frame")
+            background[2] = frame
             
             --[[
             bg positioned 60% from top of screen
@@ -181,21 +181,21 @@ end
 local youDied = {} -- frames
 
 local YouDied = {
-    [1] = function(),
-        local youDiedFrame = youDied[1]
-        if not youDiedFrame then
-            youDiedFrame = CreateFrame("Frame")
-            youDied[1] = youDiedFrame
+    [1] = function()
+        local frame = youDied[1]
+        if not frame then
+            frame = CreateFrame("Frame")
+            youDied[1] = frame
             
-            youDiedFrame:SetPoint("CENTER", 0, 0)
-            youDiedFrame:SetFrameStrata("HIGH")
+            frame:SetPoint("CENTER", 0, 0)
+            frame:SetFrameStrata("HIGH")
             
             -- "YOU DIED"
-            youDiedFrame.tex = youDiedFrame:CreateTexture()
-            youDiedFrame.tex:SetAllPoints()
+            frame.tex = frame:CreateTexture()
+            frame.tex:SetAllPoints()
             
             -- intial animation (fade-in + zoom)
-            local show = youDiedFrame:CreateAnimationGroup()
+            local show = frame:CreateAnimationGroup()
             local fadein = show:CreateAnimation("Alpha")
             fadein:SetChange(TEXT_END_ALPHA)
             fadein:SetOrder(1)
@@ -210,7 +210,7 @@ local YouDied = {
             zoom:SetEndDelay(TEXT_END_DELAY)
             
             -- hide animation (fade-out + slower zoom)
-            local hide = youDiedFrame:CreateAnimationGroup()
+            local hide = frame:CreateAnimationGroup()
             local fadeout = hide:CreateAnimation("Alpha")
             fadeout:SetChange(-1)
             fadeout:SetOrder(1)
@@ -225,8 +225,8 @@ local YouDied = {
             
             show:SetScript("OnFinished", function(self)
                 -- hide once the delay finishes
-                youDiedFrame:SetAlpha(TEXT_END_ALPHA)
-                youDiedFrame:SetScale(TEXT_SHOW_END_SCALE)
+                frame:SetAlpha(TEXT_END_ALPHA)
+                frame:SetScale(TEXT_SHOW_END_SCALE)
                 fadeout:SetScript("OnUpdate", HideBackgroundAfterDelay)
                 hide:Play()
             end)
@@ -235,28 +235,28 @@ local YouDied = {
             end)
             hide:SetScript("OnFinished", function(self)
                 -- reset to initial state
-                youDiedFrame:SetAlpha(0)
-                youDiedFrame:SetScale(1)
+                frame:SetAlpha(0)
+                frame:SetScale(1)
             end)
-            youDiedFrame.show = show
+            frame.show = show
         end
         
-        if youDiedFrame.tex:GetTexture() ~= db.tex then
-            youDiedFrame.tex:SetTexture(db.tex)
+        if frame.tex:GetTexture() ~= db.tex then
+            frame.tex:SetTexture(db.tex)
         end
         
         local height = TEXT_HEIGHT_PERCENT * ScreenHeight
-        youDiedFrame:SetSize(height / YOU_DIED_WIDTH_HEIGHT_RATIO, height)
-        youDiedFrame:SetAlpha(0)
-        youDiedFrame:SetScale(1)
-        youDiedFrame.show:Play()
+        frame:SetSize(height / YOU_DIED_WIDTH_HEIGHT_RATIO, height)
+        frame:SetAlpha(0)
+        frame:SetScale(1)
+        frame.show:Play()
     end,
 
     [2] = function()
-        local youDiedFrame = youDied[1]
-        if not youDiedFrame then
-            youDiedFrame = CreateFrame("Frame")
-            youDied[2] = youDiedFrame
+        local frame = youDied[1]
+        if not frame then
+            frame = CreateFrame("Frame")
+            youDied[2] = frame
 
         --[[
         https://www.youtube.com/watch?v=KtLrVSrRruU&t=24m34s
@@ -280,22 +280,22 @@ local bonfireLit = {} -- frames
 
 local BonfireLit = { -- bonfire lit animations
     [1] = function()
-        local bonfireLitFrame = bonfireLit[1]
-        if not bonfireLitFrame then
+        local frame = bonfireLit[1]
+        if not frame then
             -- static bonfire lit
-            bonfireLitFrame = CreateFrame("Frame")
-            bonfireLit[1] = bonfireLitFrame
+            frame = CreateFrame("Frame")
+            bonfireLit[1] = frame
             
-            bonfireLit:SetPoint("CENTER", 0, 0)
-            bonfireLit:SetFrameStrata("HIGH")
+            frame:SetPoint("CENTER", 0, 0)
+            frame:SetFrameStrata("HIGH")
             
             -- "BONFIRE LIT"
-            bonfireLit.tex = bonfireLit:CreateTexture()
-            bonfireLit.tex:SetAllPoints()
-            bonfireLit.tex:SetTexture(BONFIRE_LIT)
+            frame.tex = frame:CreateTexture()
+            frame.tex:SetAllPoints()
+            frame.tex:SetTexture(BONFIRE_LIT)
             
             -- intial animation (fade-in)
-            local show = bonfireLit:CreateAnimationGroup()
+            local show = frame:CreateAnimationGroup()
             local fadein = show:CreateAnimation("Alpha")
             fadein:SetChange(BONFIRE_TEXT_END_ALPHA)
             fadein:SetOrder(1)
@@ -303,7 +303,7 @@ local BonfireLit = { -- bonfire lit animations
             fadein:SetEndDelay(TEXT_END_DELAY)
             
             -- hide animation (fade-out)
-            local hide = bonfireLit:CreateAnimationGroup()
+            local hide = frame:CreateAnimationGroup()
             local fadeout = hide:CreateAnimation("Alpha")
             fadeout:SetChange(-1)
             fadeout:SetOrder(1)
@@ -313,29 +313,29 @@ local BonfireLit = { -- bonfire lit animations
             
             show:SetScript("OnFinished", function(self)
                 -- hide once the delay finishes
-                bonfireLit:SetAlpha(BONFIRE_TEXT_END_ALPHA)
+                frame:SetAlpha(BONFIRE_TEXT_END_ALPHA)
             end)
             hide:SetScript("OnFinished", function(self)
                 -- reset to initial state
-                bonfireLit:SetAlpha(0)
+                frame:SetAlpha(0)
             end)
-            bonfireLit.show = show
-            bonfireLit.hide = hide
+            frame.show = show
+            frame.hide = hide
             
             --
             --
             -- animated/blurred bonfire lit
-            bonfireLitFrame.animated = CreateFrame("Frame")
-            bonfireLitFrame.animated:SetPoint("CENTER", 0, 0)
-            bonfireLitFrame.animated:SetFrameStrata("HIGH")
+            frame.animated = CreateFrame("Frame")
+            frame.animated:SetPoint("CENTER", 0, 0)
+            frame.animated:SetFrameStrata("HIGH")
         
             -- animated "BONFIRE LIT"
-            bonfireLitFrame.animated.tex = bonfireLitFrame.animated:CreateTexture()
-            bonfireLitFrame.animated.tex:SetAllPoints()
-            bonfireLitFrame.animated.tex:SetTexture(BONFIRE_LIT_BLUR)
+            frame.animated.tex = frame.animated:CreateTexture()
+            frame.animated.tex:SetAllPoints()
+            frame.animated.tex:SetTexture(BONFIRE_LIT_BLUR)
             
             -- intial animation (fade-in + flare)
-            local show = bonfireLitFrame.animated:CreateAnimationGroup()
+            local show = frame.animated:CreateAnimationGroup()
             local fadein = show:CreateAnimation("Alpha")
             fadein:SetChange(BONFIRE_BLUR_TEXT_END_ALPHA)
             fadein:SetOrder(1)
@@ -363,7 +363,7 @@ local BonfireLit = { -- bonfire lit animations
             flareIn:SetEndDelay(BONFIRE_END_DELAY)
             
             -- hide animation (fade-out)
-            local hide = bonfireLitFrame.animated:CreateAnimationGroup()
+            local hide = frame.animated:CreateAnimationGroup()
             local fadeout = hide:CreateAnimation("Alpha")
             fadeout:SetChange(-1)
             fadeout:SetOrder(1)
@@ -377,34 +377,34 @@ local BonfireLit = { -- bonfire lit animations
                 local xScale, yScale = self:GetScale()
                 local height = TEXT_HEIGHT_PERCENT * ScreenHeight
                 local width = height / BONFIRE_WIDTH_HEIGHT_RATIO
-                bonfireLitFrame.animated:SetSize(width * BONFIRE_FLARE_SCALE_X * xScale, height * BONFIRE_FLARE_SCALE_Y * yScale)
+                frame.animated:SetSize(width * BONFIRE_FLARE_SCALE_X * xScale, height * BONFIRE_FLARE_SCALE_Y * yScale)
             end)
             
             show:SetScript("OnFinished", function(self)
                 -- hide once the delay finishes
-                bonfireLitFrame.animated:SetAlpha(BONFIRE_BLUR_TEXT_END_ALPHA)
+                frame.animated:SetAlpha(BONFIRE_BLUR_TEXT_END_ALPHA)
                 
                 fadeout:SetScript("OnUpdate", HideBackgroundAfterDelay)
-                hide:Play()
-                bonfireLit.hide:Play()
+                frame.hide:Play() -- static hide
+                hide:Play() -- blurred hide
             end)
             hide:SetScript("OnFinished", function(self)
                 -- reset to initial state
-                bonfireLitFrame.animated:SetAlpha(0)
-                bonfireLitFrame.animated:SetScale(BONFIRE_START_SCALE)
+                frame.animated:SetAlpha(0)
+                frame.animated:SetScale(BONFIRE_START_SCALE)
                 
                 bonfireIsLighting = nil
             end)
-            bonfireLitFrame.animated.show = show
+            frame.animated.show = show
         end
         
         local height = TEXT_HEIGHT_PERCENT * ScreenHeight
-        bonfireLitFrame:SetSize(height / BONFIRE_WIDTH_HEIGHT_RATIO, height)
-        bonfireLitFrame:SetAlpha(0)
-        bonfireLitFrame:SetScale(BONFIRE_START_SCALE)
-        bonfireLitFrame.show:Play()
+        frame:SetSize(height / BONFIRE_WIDTH_HEIGHT_RATIO, height)
+        frame:SetAlpha(0)
+        frame:SetScale(BONFIRE_START_SCALE)
+        frame.show:Play()
         
-        local animated = bonfireLitFrame.animated
+        local animated = frame.animated
         animated:SetSize(height / BONFIRE_WIDTH_HEIGHT_RATIO, height)
         animated:SetAlpha(0)
         animated:SetScale(BONFIRE_START_SCALE)
@@ -414,16 +414,16 @@ local BonfireLit = { -- bonfire lit animations
     end,
 
     [2] = function()
-        local bonfireLitFrame = bonfireLit[2]
-        if not bonfireLitFrame then
+        local frame = bonfireLit[2]
+        if not frame then
             -- static bonfire lit
-            bonfireLitFrame = CreateFrame("Frame")
-            bonfireLit[2] = bonfireLitFrame
+            frame = CreateFrame("Frame")
+            bonfireLit[2] = frame
             
             --
             --
             -- animated/blurred bonfire lit
-            bonfireLitFrame.animated = CreateFrame("Frame")
+            frame.animated = CreateFrame("Frame")
         end
         
         --[[
