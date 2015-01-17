@@ -53,7 +53,7 @@ local BONFIRE_FLARE_SCALE_Y = {
 }
 local BONFIRE_FLARE_OUT_TIME = {
     [1] = 0.22, -- seconds
-    [2] = 1.2, -- seconds
+    [2] = 1.4, -- seconds
 }
 local BONFIRE_FLARE_OUT_END_DELAY = {
     [1] = 0.1, -- seconds
@@ -456,14 +456,14 @@ local function GetBonfireLitFrame(version)
         local fadein = show:CreateAnimation("Alpha")
         fadein:SetChange(BONFIRE_BLUR_TEXT_END_ALPHA)
         fadein:SetOrder(1)
-        fadein:SetSmoothing("OUT")
+        fadein:SetSmoothing("IN")
         -- delay the flare animation until the base texture is almost fully visible
         if frame.version == 1 then
             fadein:SetStartDelay(FADE_IN_TIME * 0.75)
         elseif frame.version == 2 then
-            fadein:SetStartDelay(FADE_IN_TIME + TEXT_FADE_IN_DURATION * 0.75)
+            fadein:SetStartDelay(FADE_IN_TIME + TEXT_FADE_IN_DURATION * 0.9)
         end
-        fadein:SetDuration(FADE_IN_TIME + TEXT_FADE_IN_DURATION)
+        fadein:SetDuration(FADE_IN_TIME + TEXT_FADE_IN_DURATION + 0.25)
         local flareOut = show:CreateAnimation("Scale")
         flareOut:SetOrigin("CENTER", 0, 0)
         flareOut:SetScale(BONFIRE_FLARE_SCALE_X, BONFIRE_FLARE_SCALE_Y) -- flare out
