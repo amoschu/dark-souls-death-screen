@@ -95,7 +95,7 @@ local function UnrecognizedVersion()
     local msg = "[|cffFF0000Error|r] Unrecognized version flag, \"%s\"!"
     Print(msg:format(tostring(db.version)))
     
-    -- just correct the issue, I guess?
+    -- just correct the issue
     db.version = 1
 end
 
@@ -125,6 +125,8 @@ local function BGFadeIn(self, e)
     else
         self:SetScript("OnUpdate", nil)
         self.elapsed = nil
+        -- force the background to hit its final alpha in case 'e' is too small
+        self:SetAlpha(BG_END_ALPHA[self.version])
     end
 end
 
